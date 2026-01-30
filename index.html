@@ -202,6 +202,7 @@ const items = [
 
       if (tapTimeout) {
         clearTimeout(tapTimeout);
+        tapTimeout = null; // クリア後に必ずリセットする（残骸のタイマーIDを残さない）
         isDoubleTap = true;
         handleDoubleTap(); // ダブルタップで日付入力をトリガー
       } else {
