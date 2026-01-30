@@ -193,6 +193,13 @@ const items = [
     function handleTap(event) {
       event.preventDefault(); // デフォルト動作を防止
 
+      const input = cell.querySelector('input.date-input');
+      if (input) {
+        // 日付入力欄が存在していてもチェックをトリガー
+        toggleCheck();
+        return;
+      }
+
       if (tapTimeout) {
         clearTimeout(tapTimeout);
         isDoubleTap = true;
