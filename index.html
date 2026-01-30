@@ -197,8 +197,9 @@ const items = [
     }
 
     function handleDoubleTap() {
-      if (!cell.querySelector('input.date-input')) {
-        const input = document.createElement('input');
+      let input = cell.querySelector('input.date-input');
+      if (!input) {
+        input = document.createElement('input');
         input.type = 'text';
         input.placeholder = 'YYYY-MM-DD';
         input.className = 'date-input';
@@ -212,6 +213,8 @@ const items = [
           }
           cell.removeChild(input);
         });
+      } else {
+        input.focus(); // 既存の入力欄があればフォーカスを移動
       }
     }
 
