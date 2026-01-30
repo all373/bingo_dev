@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ビンゴ v0r</title>
+<style>
+  body {
+    font-family: sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 10px;
+  }
+  h1 { margin-bottom: 20px; }
+
+  .bingo {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(5, 1fr);
+    width: 90vw;
+    height: 90vw;
+    max-width: 700px;
+    max-height: 700px;
+    gap: 0;
+    box-sizing: border-box;
+  }
+
+  .cell {
+    background-color: #fff;
+    border: 1.5px solid #000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    aspect-ratio: 1/1;
+    padding: 4px;
+    word-break: break-word;
+    white-space: pre-wrap;
+    font-size: clamp(12px, 2vw, 20px);
+  }
+
+  .cell.checked::after {
+    content: "";
+    position: absolute;
+    top: 15%; left: 15%; bottom: 15%; right: 15%;
+    border: 3px solid red;
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  .cell.checked span.main { color: #000; font-weight: bold; }
+
+  .cell .date {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    font-size: 0.6em;
+    color: #888;
+    pointer-events: none;
+  }
+
+  .cell input.date-input {
+    position: absolute;
+    bottom: 2px; /* 右下に配置 */
+    right: 2px;
+    font-size: 0.8em;
+    width: 90px; /* サイズ調整 */
+    background-color: #f9f9f9; /* 背景色を灰色に */
+    border: 1px solid #ccc; /* 枠線を追加 */
+    border-radius: 4px; /* 角を丸く */
+    padding: 2px;
+    z-index: 10; /* 他の要素より前面に表示 */
+    text-align: center; /* テキストを中央揃え */
+  }
+
+  /* 外周太線 */
+  .cell:nth-child(-n+5) { border-top: 4px solid #000; }
+  .cell:nth-child(5n+1) { border-left: 4px solid #000; }
+  .cell:nth-child(5n) { border-right: 4px solid #000; }
+  .cell:nth-last-child(-n+5) { border-bottom: 4px solid #000; }
+
+  /* スマホ向け調整 */
+  @media (max-width: 600px) {
+    body {
+      margin: 0;
+      padding: 0;
+      align-items: flex-start; /* 左寄せ */
+    }
+    h1 {
+      font-size: 1.2em;
+      margin: 5px 10px;
+    }
+    .bingo {
+      width: 85vw;
+      height: 85vw;
+      max-width: 300px;
+      max-height: 300px;
+      margin-left: 10px; /* 左寄せ */
+    }
+    .cell {
+      font-size: clamp(8px, 2vw, 10px);
+      padding: 1px;
+    }
+    .cell input.date-input {
+      width: 70px;
+      font-size: 0.6em;
+    }
+  }
+</style>
+</head>
+<body>
+
+<h1>ビンゴ v0r7</h1>
+<div class="bingo" id="bingo"></div>
+
+<script>
+const bingoDiv = document.getElementById('bingo');
+
+const items = [
+  "セル1\nテスト",
+  "セ\"ル2\nテスト",
+  "セ'ル3\nテスト",
+  "セ<ル4>\nテスト",
+  "セ&ル5\nテスト",
+  "長い文字列テスト長い文字列テスト長い文字列テスト\nセル6",
+  "改行\nテスト\nセル7",
+  "タブ\t文字セル8",
+  "特殊!@#$%^&*()_+セル9",
+  "全角文字全角文字全角文字セル10",
+  "半角ｶﾀｶﾅセル11",
+  "絵文字😊セル12",
+  "HTMLタグ<p>セル13</p>",
+  "空文字セル14",
+  "\nセル15",
+  "セル16\n終わり",
+  "セル17 / バックスラッシュ\\",
+  "複雑文字列<>\"'&\nセル18",
+  "セル19\n\n\n",
+  "長い改行\n長い改行\nセル20",
+  "セル21\u2603",
+  "セル22\u2764",
+  "セル23\n特殊記号!@#",
+  "セル24 & < > \" ' \nテスト",
+  "セル25 最後のテスト文字列"
+];
+
+  // 保存された状態を復元する関数
+  function loadState() {
+    const savedState = JSON.parse(localStorage.getItem('bingoState')) || [];
+    savedState.forEach((state, index) => {
+      const cell = bingoDiv.children[index];
+      if (state.checked) {
+        cell.classList.add('checked');
+      }
+      if (state.date) {
+        const dateSpan = cell.querySelector('.date');
+        dateSpan.textContent = state.date;
+      }
+    });
+  }
+
+  // 現在の状態を保存する関数
+  function saveState() {
+    const state = Array.from(bingoDiv.children).map(cell => {
+      return {
+        checked: cell.classList.contains('checked'),
+        date: cell.querySelector('.date').textContent
+      };
+    });
+    localStorage.setItem('bingoState', JSON.stringify(state));
+  }
+
+  items.forEach(item => {
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+
+    const mainSpan = document.createElement('span');
+    mainSpan.className = 'main';
+    mainSpan.textContent = item;
+    cell.appendChild(mainSpan);
+
+    const dateSpan = document.createElement('span');
+    dateSpan.className = 'date';
+    cell.appendChild(dateSpan);
+
+    let tapTimeout;
+    let isDoubleTap = false;
+
+    function toggleCheck() {
+      if (!isDoubleTap) {
+        cell.classList.toggle('checked'); // タップでON/OFF切替
+        saveState(); // 状態を保存
+      }
+    }
+
+    function handleDoubleTap() {
+      if (!cell.querySelector('input.date-input')) {
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.placeholder = 'YYYY-MM-DD';
+        input.className = 'date-input';
+        cell.appendChild(input);
+        input.focus();
+
+        input.addEventListener('blur', () => {
+          if (input.value.trim() !== '') {
+            dateSpan.textContent = input.value;
+            saveState(); // 状態を保存
+          }
+          cell.removeChild(input);
+        });
+      }
+    }
+
+    function handleTap(event) {
+      event.preventDefault(); // デフォルト動作を防止
+
+      if (tapTimeout) {
+        clearTimeout(tapTimeout);
+        isDoubleTap = true;
+        handleDoubleTap();
+      } else {
+        isDoubleTap = false;
+        tapTimeout = setTimeout(() => {
+          toggleCheck();
+          tapTimeout = null;
+        }, 300); // ダブルタップ判定時間を少し延長
+      }
+    }
+
+    cell.addEventListener('click', handleTap); // イベントをclickに統一
+
+    bingoDiv.appendChild(cell);
+  });
+
+  // ページ読み込み時に状態を復元
+  loadState();
+</script>
+
+</body>
+</html>
