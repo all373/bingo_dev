@@ -190,9 +190,24 @@ const items = [
     let tapTimeout;
     let isDoubleTap = false;
 
+    function handleTap(event) {
+      event.preventDefault(); // デフォルト動作を防止
+
+      if (tapTimeout) {
+        clearTimeout(tapTimeout);
+        isDoubleTap = true;
+        handleDoubleTap(); // ダブルタップで日付入力をトリガー
+      } else {
+        isDoubleTap = false;
+        tapTimeout = setTimeout(() => {
+          toggleCheck(); // シングルタップでチェック切り替え
+          tapTimeout = null;
+        }, 300); // ダブルタップ判定時間
+      }
+    }
+
     function toggleCheck() {
-      // 日付入力が存在してもチェック状態を切り替え可能にする
-      cell.classList.toggle('checked');
+      cell.classList.toggle('checked'); // チェック状態を切り替え
       saveState(); // 状態を保存
     }
 
@@ -215,22 +230,6 @@ const items = [
         });
       } else {
         input.focus(); // 既存の入力欄があればフォーカスを移動
-      }
-    }
-
-    function handleTap(event) {
-      event.preventDefault(); // デフォルト動作を防止
-
-      if (tapTimeout) {
-        clearTimeout(tapTimeout);
-        isDoubleTap = true;
-        handleDoubleTap();
-      } else {
-        isDoubleTap = false;
-        tapTimeout = setTimeout(() => {
-          toggleCheck();
-          tapTimeout = null;
-        }, 300); // ダブルタップ判定時間を少し延長
       }
     }
 
