@@ -191,10 +191,9 @@ const items = [
     let isDoubleTap = false;
 
     function toggleCheck() {
-      if (!isDoubleTap) {
-        cell.classList.toggle('checked'); // タップでON/OFF切替
-        saveState(); // 状態を保存
-      }
+      // 日付入力が存在してもチェック状態を切り替え可能にする
+      cell.classList.toggle('checked');
+      saveState(); // 状態を保存
     }
 
     function handleDoubleTap() {
